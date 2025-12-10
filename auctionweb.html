@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Online Auction System with Payments & Logout</title>
+
+<style>
+  body {
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    margin: 0;
+    padding: 0;
+    color: #333;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 60px auto;
+    background: white;
+    border-radius: 15px;
+    padding: 45px 55px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  h1 { text-align: center; color: #007bff; margin-bottom: 30px; font-size: 32px; }
+
+  h2, h3 {
+    color: #333;
+    border-left: 5px solid #007bff;
+    padding-left: 10px;
+    margin-bottom: 25px;
+    margin-top: 25px;
+  }
+
+  button, input[type="submit"] {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 12px;
+  }
+
+  button:hover, input[type="submit"]:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+  }
+
+  input[type="text"], input[type="password"], input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin: 12px 0 22px;
+    box-sizing: border-box;
+  }
+
+  .menu-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 22px;
+    margin-top: 30px;
+    margin-bottom: 35px;
+  }
+
+  .back-btn { margin-top: 25px; display: block; }
+
+  .auction-item {
+    background: #f9fafc;
+    border: 1px solid #e3e3e3;
+    padding: 18px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .message {
+    padding: 14px;
+    margin-bottom: 25px;
+    border-radius: 6px;
+    font-weight: bold;
+    display: none;
+  }
+
+  .success { background: #d4edda; color: #155724; }
+  .error { background: #f8d7da; color: #721c24; }
+
+  .hidden { display: none; }
+
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 15px;
+    color: #555;
+  }
+</style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Online Auction System 💸</h1>
+    <div id="message-area" class="message"></div>
+
+    <!-- Main Menu -->
+    <div id="main-menu">
+      <h2>Main Menu</h2>
+      <div class="menu-buttons">
+        <button onclick="showRegisterForm()">Register</button>
+        <button onclick="showLoginForm()">Login</button>
+        <button onclick="showAdminLoginForm()">Admin Login</button>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div id="register-form" class="hidden">
+      <h2>Register</h2>
+      <form id="register-form-data">
+        <label>Username:</label>
+        <input type="text" id="reg-username" required>
+        <label>Password:</label>
+        <input type="password" id="reg-password" required>
+        <input type="submit" value="Register">
+      </form>
+      <button class="back-btn" onclick="showMainMenu()">⬅ Back</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="login-form" class="hidden">
+      <h2>User Login</h2>
+      <form id="login-form-data">
+        <label>Username:</label>
+        <input type="text" id="log-username" required>
+        <label>Password:</label>
+        <input type="password" id="log-password" required>
+        <input type="submit" value="Login">
+      </form>
+      <button class="back-btn" onclick="showMainMenu()">⬅ Back</button>
+    </div>
+
+    <!-- Admin Login -->
+    <div id="admin-login-form" class="hidden">
+      <h2>Admin Login</h2>
+      <form id="admin-login-form-data">
+        <label>Username:</label>
+        <input type="text" id="admin-username" required>
+        <label>Password:</label>
+        <input type="password" id="admin-password" required>
+        <input type="submit" value="Login">
+      </form>
+      <button class="back-btn" onclick="showMainMenu()">⬅ Back</button>
+    </div>
+
+    <!-- User Menu -->
+    <div id="user-menu" class="hidden">
+      <h2 id="user-welcome"></h2>
+      <div class="menu-buttons">
+        <button onclick="viewItems('user')">View Items</button>
+        <button onclick="showPlaceBidForm()">Place Bid</button>
+        <button onclick="showPaymentForm()">Make Payment</button>
+        <button onclick="logout()">Logout</button>
+      </div>
+
+      <div id="user-view-items" class="hidden">
+        <h3>Available Auction Items</h3>
+        <div id="user-item-list"></div>
+      </div>
+
+      <div id="place-bid-form" class="hidden">
+        <h3>Place Your Bid</h3>
+        <form id="bid-form-data">
+          <label>Item ID:</label>
+          <input type="number" id="bid-item-id" required min="1">
+          <label>Bid Amount ($):</label>
+          <input type="number" id="bid-amount" required min="0.01" step="0.01">
+          <input type="submit" value="Submit Bid">
+        </form>
+        <button class="back-btn" onclick="showUserMenu()">⬅ Cancel</button>
+      </div>
+
+      <div id="payment-form" class="hidden">
+        <h3>Make a Payment</h3>
+        <form id="payment-form-data">
+          <label>Item ID:</label>
+          <input type="number" id="payment-item-id" required>
+          <label>Amount ($):</label>
+          <input type="number" id="payment-amount" required min="0.01" step="0.01">
+          <label>Card Number:</label>
+          <input type="text" id="card-number" required placeholder="1234 5678 9012 3456">
+          <input type="submit" value="Pay Now">
+        </form>
+        <button class="back-btn" onclick="showUserMenu()">⬅ Cancel</button>
+      </div>
+    </div>
+
+    <!-- Admin Menu -->
+    <div id="admin-menu" class="hidden">
+      <h2>Admin Dashboard</h2>
+      <div class="menu-buttons">
+        <button onclick="showAddItemForm()">Add Item</button>
+        <button onclick="viewItems('admin')">View Results</button>
+        <button onclick="viewPayments()">View Payments</button>
+        <button onclick="logout()">Logout</button>
+      </div>
+
+      <div id="add-item-form" class="hidden">
+        <h3>Add a New Auction Item</h3>
+        <form id="add-item-form-data">
+          <label>Item Name:</label>
+          <input type="text" id="item-name" required>
+          <label>Description:</label>
+          <input type="text" id="item-description" required>
+          <label>Initial Amount ($):</label>
+          <input type="number" id="initial-amount" required min="0.01" step="0.01">
+          <input type="submit" value="Add Item">
+        </form>
+        <button class="back-btn" onclick="showAdminMenu()">⬅ Cancel</button>
+      </div>
+
+      <div id="admin-view-results" class="hidden">
+        <h3>Auction Results</h3>
+        <div id="admin-result-list"></div>
+      </div>
+
+      <div id="admin-payments" class="hidden">
+        <h3>User Payments</h3>
+        <div id="payment-list"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>© 2025 Online Auction System | Designed by You</footer>
+
+<script>
+  const ADMIN_USERNAME = "admin";
+  const ADMIN_PASSWORD = "admin123";
+  let currentUser = null;
+  let users = {};
+  let items = [];
+  let payments = [];
+  let itemIdCounter = 1;
+
+  const msg = document.getElementById("message-area");
+
+  function showMessage(text, type = "success") {
+    msg.textContent = text;
+    msg.className = `message ${type}`;
+    msg.style.display = "block";
+    setTimeout(() => msg.style.display = "none", 3000);
+  }
+
+  function hideAll() {
+    document.querySelectorAll(".container > div").forEach(div => {
+      if (div.id !== "message-area") div.classList.add("hidden");
+    });
+  }
+
+  function showMainMenu() { hideAll(); document.getElementById("main-menu").classList.remove("hidden"); }
+  function showRegisterForm() { hideAll(); document.getElementById("register-form").classList.remove("hidden"); }
+  function showLoginForm() { hideAll(); document.getElementById("login-form").classList.remove("hidden"); }
+  function showAdminLoginForm() { hideAll(); document.getElementById("admin-login-form").classList.remove("hidden"); }
+
+  document.getElementById("register-form-data").onsubmit = e => {
+    e.preventDefault();
+    const u = document.getElementById("reg-username").value;
+    const p = document.getElementById("reg-password").value;
+    if (users[u]) return showMessage("Username already exists!", "error");
+    users[u] = { username: u, password: p };
+    showMessage("Registration successful!");
+    e.target.reset();
+    showMainMenu();
+  };
+
+  document.getElementById("login-form-data").onsubmit = e => {
+    e.preventDefault();
+    const u = document.getElementById("log-username").value;
+    const p = document.getElementById("log-password").value;
+    if (users[u] && users[u].password === p) {
+      currentUser = u;
+      showMessage("Login successful!");
+      showUserMenu();
+    } else showMessage("Invalid credentials!", "error");
+  };
+
+  document.getElementById("admin-login-form-data").onsubmit = e => {
+    e.preventDefault();
+    const u = document.getElementById("admin-username").value;
+    const p = document.getElementById("admin-password").value;
+    if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD) {
+      currentUser = ADMIN_USERNAME;
+      showMessage("Admin login successful!");
+      showAdminMenu();
+    } else showMessage("Invalid admin credentials!", "error");
+  };
+
+  function logout() {
+    currentUser = null;
+    showMessage("You have been logged out!");
+    showMainMenu();
+  }
+
+  function showUserMenu() {
+    hideAll();
+    document.getElementById("user-welcome").textContent = `Welcome, ${currentUser}!`;
+    document.getElementById("user-menu").classList.remove("hidden");
+  }
+
+  function viewItems(type) {
+    let listDiv = type === "user" ? "user-item-list" : "admin-result-list";
+    let container = type === "user" ? "user-view-items" : "admin-view-results";
+    document.getElementById(container).classList.remove("hidden");
+    const list = document.getElementById(listDiv);
+    list.innerHTML = "";
+    if (items.length === 0) return (list.innerHTML = "<p>No items available yet.</p>");
+    items.forEach(it => {
+      list.innerHTML += `<div class='auction-item'>
+        <strong>ID: ${it.id}</strong> | <b>${it.name}</b><br>
+        ${it.description}<br>
+        <b>Current Bid:</b> $${it.highestBid.toFixed(2)} |
+        <b>Bidder:</b> ${it.highestBidder}
+      </div>`;
+    });
+  }
+
+  document.getElementById("bid-form-data").onsubmit = e => {
+    e.preventDefault();
+    const id = +document.getElementById("bid-item-id").value;
+    const bid = +document.getElementById("bid-amount").value;
+    const item = items.find(it => it.id === id);
+    if (!item) return showMessage("Invalid Item ID!", "error");
+    if (bid > item.highestBid) {
+      item.highestBid = bid;
+      item.highestBidder = currentUser;
+      showMessage("Bid placed successfully!");
+    } else showMessage(`Bid must be higher than $${item.highestBid.toFixed(2)}.`, "error");
+    e.target.reset();
+  };
+
+  function showPlaceBidForm() {
+    document.getElementById("place-bid-form").classList.remove("hidden");
+  }
+
+  function showPaymentForm() {
+    hideAll();
+    document.getElementById("user-menu").classList.remove("hidden");
+    document.getElementById("payment-form").classList.remove("hidden");
+  }
+
+  document.getElementById("payment-form-data").onsubmit = e => {
+    e.preventDefault();
+    const id = +document.getElementById("payment-item-id").value;
+    const amount = +document.getElementById("payment-amount").value;
+    const card = document.getElementById("card-number").value;
+    const item = items.find(it => it.id === id);
+    if (!item) return showMessage("Invalid Item ID!", "error");
+    if (item.highestBidder !== currentUser)
+      return showMessage("You can only pay for items you won!", "error");
+
+    payments.push({
+      user: currentUser,
+      itemName: item.name,
+      itemId: item.id,
+      amount,
+      card,
+      date: new Date().toLocaleString()
+    });
+
+    showMessage("Payment successful!");
+    e.target.reset();
+    showUserMenu();
+  };
+
+  function showAdminMenu() { hideAll(); document.getElementById("admin-menu").classList.remove("hidden"); }
+
+  function showAddItemForm() {
+    document.getElementById("admin-view-results").classList.add("hidden");
+    document.getElementById("admin-payments").classList.add("hidden");
+    document.getElementById("add-item-form").classList.remove("hidden");
+  }
+
+  document.getElementById("add-item-form-data").onsubmit = e => {
+    e.preventDefault();
+    const name = document.getElementById("item-name").value;
+    const desc = document.getElementById("item-description").value;
+    const initialAmount = +document.getElementById("initial-amount").value;
+
+    const item = {
+      id: itemIdCounter++,
+      name,
+      description: desc,
+      highestBid: initialAmount,
+      highestBidder: "None"
+    };
+
+    items.push(item);
+
+    showMessage(`Item "${name}" added with initial amount $${initialAmount}!`);
+    e.target.reset();
+    showAdminMenu();
+  };
+
+  function viewPayments() {
+    hideAll();
+    document.getElementById("admin-menu").classList.remove("hidden");
+    const list = document.getElementById("payment-list");
+    const container = document.getElementById("admin-payments");
+    container.classList.remove("hidden"); 
+    if (payments.length === 0) return (list.innerHTML = "<p>No payments yet.</p>");
+    list.innerHTML = payments.map(p =>
+      `<div class='auction-item'>
+        <b>User:</b> ${p.user}<br>
+        <b>Item:</b> ${p.itemName} (ID: ${p.itemId})<br>
+        <b>Amount:</b> $${p.amount.toFixed(2)}<br>
+        <b>Date:</b> ${p.date}
+      </div>`
+    ).join("");
+  }
+
+  document.addEventListener("DOMContentLoaded", showMainMenu);
+</script>
+
+</body>
+</html>
